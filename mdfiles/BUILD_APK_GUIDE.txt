@@ -1,0 +1,386 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║              BUILD ANDROID APK - COMPLETE GUIDE                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📱 SOLAR SHARING PLATFORM - ANDROID APK BUILD
+
+Updated: January 18, 2026
+App: Solar Sharing Platform
+Package: com.solarsharing.app
+
+════════════════════════════════════════════════════════════════════════════════
+
+METHOD 1: EAS BUILD (RECOMMENDED - NO ANDROID STUDIO NEEDED)
+════════════════════════════════════════════════════════════════════════════════
+
+This is the easiest method. Builds APK in the cloud using Expo's servers.
+
+┌─ PREREQUISITES ────────────────────────────────────────────────────────────────┐
+│                                                                                │
+│  ✓ Node.js installed (you have this)                                          │
+│  ✓ Expo account (free - create at https://expo.dev)                           │
+│  ✓ Internet connection (for cloud build)                                      │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 1: INSTALL EAS CLI ─────────────────────────────────────────────────────┐
+│                                                                                │
+│  npm install -g eas-cli                                                        │
+│                                                                                │
+│  This installs Expo Application Services command-line tool globally.          │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 2: LOGIN TO EXPO ───────────────────────────────────────────────────────┐
+│                                                                                │
+│  eas login                                                                     │
+│                                                                                │
+│  → Enter your Expo username/email                                             │
+│  → Enter password                                                              │
+│  → Or create account if you don't have one                                    │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 3: CONFIGURE PROJECT ───────────────────────────────────────────────────┐
+│                                                                                │
+│  cd frontend                                                                   │
+│  eas build:configure                                                           │
+│                                                                                │
+│  → Select: Android                                                             │
+│  → This creates eas.json (already created for you!)                           │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 4: UPDATE BACKEND URL (IMPORTANT!) ─────────────────────────────────────┐
+│                                                                                │
+│  Edit: frontend/src/api/config.ts                                             │
+│                                                                                │
+│  Option A: Use your hosted backend URL (if already deployed)                  │
+│    const BACKEND_URLS = {                                                      │
+│      production: {                                                             │
+│        base: 'https://your-backend.railway.app',                              │
+│        mlService: 'https://your-ml.railway.app',                              │
+│      }                                                                         │
+│    };                                                                          │
+│                                                                                │
+│  Option B: Use your local IP (for testing before deploying backend)           │
+│    Replace localhost with your computer's IP:                                 │
+│    - Find IP: ifconfig (Linux/Mac) or ipconfig (Windows)                      │
+│    - Example: 192.168.1.100                                                   │
+│    const BACKEND_URLS = {                                                      │
+│      development: {                                                            │
+│        base: 'http://192.168.1.100:3000',                                     │
+│        mlService: 'http://192.168.1.100:8001',                                │
+│      }                                                                         │
+│    };                                                                          │
+│                                                                                │
+│  ⚠️  NOTE: localhost/127.0.0.1 won't work on physical Android devices!       │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 5: BUILD APK ────────────────────────────────────────────────────────────┐
+│                                                                                │
+│  cd frontend                                                                   │
+│  npm run build:android:preview                                                 │
+│                                                                                │
+│  OR manually:                                                                  │
+│  eas build --platform android --profile preview                                │
+│                                                                                │
+│  What happens:                                                                 │
+│    1. Code is uploaded to Expo servers                                        │
+│    2. Built in the cloud (takes 5-15 minutes)                                 │
+│    3. APK downloaded automatically                                            │
+│                                                                                │
+│  Output: solar-sharing-<version>.apk                                           │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 6: DOWNLOAD & INSTALL ──────────────────────────────────────────────────┐
+│                                                                                │
+│  After build completes:                                                        │
+│    → APK download link shown in terminal                                      │
+│    → Also available at: https://expo.dev/accounts/<username>/builds           │
+│                                                                                │
+│  Install on Android:                                                           │
+│    1. Transfer APK to phone (via USB, email, cloud)                           │
+│    2. Open APK file on phone                                                  │
+│    3. Allow "Install from unknown sources" if prompted                        │
+│    4. Install app                                                             │
+│    5. Open Solar Sharing app                                                  │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+METHOD 2: LOCAL BUILD (REQUIRES ANDROID STUDIO)
+════════════════════════════════════════════════════════════════════════════════
+
+Build APK directly on your computer. Faster but requires more setup.
+
+┌─ PREREQUISITES ────────────────────────────────────────────────────────────────┐
+│                                                                                │
+│  • Android Studio installed                                                   │
+│  • Android SDK & Build Tools                                                  │
+│  • Java JDK 11+ installed                                                     │
+│  • 20GB+ free disk space                                                      │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 1: INSTALL ANDROID STUDIO ──────────────────────────────────────────────┐
+│                                                                                │
+│  Download from: https://developer.android.com/studio                           │
+│                                                                                │
+│  Linux Installation:                                                           │
+│    1. Download android-studio-<version>-linux.tar.gz                          │
+│    2. Extract: tar -xzf android-studio-*.tar.gz                               │
+│    3. Move: sudo mv android-studio /opt/                                      │
+│    4. Run: /opt/android-studio/bin/studio.sh                                  │
+│    5. Follow setup wizard                                                     │
+│    6. Install SDK, emulator, and build tools                                  │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 2: SETUP ENVIRONMENT VARIABLES ─────────────────────────────────────────┐
+│                                                                                │
+│  Add to ~/.bashrc or ~/.zshrc:                                                │
+│                                                                                │
+│  export ANDROID_HOME=$HOME/Android/Sdk                                        │
+│  export PATH=$PATH:$ANDROID_HOME/emulator                                     │
+│  export PATH=$PATH:$ANDROID_HOME/platform-tools                               │
+│  export PATH=$PATH:$ANDROID_HOME/tools                                        │
+│  export PATH=$PATH:$ANDROID_HOME/tools/bin                                    │
+│                                                                                │
+│  Then: source ~/.bashrc                                                        │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 3: PREBUILD ANDROID PROJECT ────────────────────────────────────────────┐
+│                                                                                │
+│  cd frontend                                                                   │
+│  npx expo prebuild --platform android                                          │
+│                                                                                │
+│  This creates: frontend/android/ folder with native code                      │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 4: BUILD APK ────────────────────────────────────────────────────────────┐
+│                                                                                │
+│  Option A: Using npm script                                                    │
+│    npm run build:android:local                                                 │
+│                                                                                │
+│  Option B: Using Gradle directly                                               │
+│    cd android                                                                  │
+│    ./gradlew assembleRelease                                                   │
+│                                                                                │
+│  Build time: 5-10 minutes (first time may take longer)                        │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STEP 5: FIND & INSTALL APK ──────────────────────────────────────────────────┐
+│                                                                                │
+│  APK Location:                                                                 │
+│    frontend/android/app/build/outputs/apk/release/app-release.apk            │
+│                                                                                │
+│  File size: ~30-50 MB                                                          │
+│                                                                                │
+│  Install on device:                                                            │
+│    adb install app-release.apk                                                 │
+│                                                                                │
+│  Or transfer to phone and install manually                                    │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+METHOD 3: EXPO GO (TESTING ONLY - NO APK NEEDED)
+════════════════════════════════════════════════════════════════════════════════
+
+For quick testing without building APK. Cannot be distributed to users.
+
+┌─ STEPS ────────────────────────────────────────────────────────────────────────┐
+│                                                                                │
+│  1. Install "Expo Go" app from Play Store on your phone                       │
+│  2. On computer: cd frontend && npm start                                     │
+│  3. Scan QR code with Expo Go app                                             │
+│  4. App loads instantly on your phone                                         │
+│                                                                                │
+│  ⚠️  Limitations:                                                             │
+│    - Cannot distribute to other users                                         │
+│    - Requires Expo Go app installed                                           │
+│    - Some native modules may not work                                         │
+│    - Both devices must be on same network                                     │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+COMPARISON: WHICH METHOD TO USE?
+════════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────┬──────────────┬──────────────┬─────────────────────────┐
+│ Feature            │ EAS Build    │ Local Build  │ Expo Go                 │
+├────────────────────┼──────────────┼──────────────┼─────────────────────────┤
+│ Setup Time         │ 5 minutes    │ 1-2 hours    │ 2 minutes               │
+│ Build Time         │ 10-15 min    │ 5-10 min     │ Instant                 │
+│ Requires Android   │ No           │ Yes          │ No                      │
+│ Studio?            │              │              │                         │
+│ Internet Required? │ Yes          │ No           │ Yes                     │
+│ Distributable?     │ Yes          │ Yes          │ No                      │
+│ Difficulty         │ Easy         │ Hard         │ Very Easy               │
+│ Recommended For    │ Production   │ Developers   │ Quick Testing           │
+└────────────────────┴──────────────┴──────────────┴─────────────────────────┘
+
+🌟 RECOMMENDED: Use EAS Build (Method 1) for easiest APK creation
+
+════════════════════════════════════════════════════════════════════════════════
+
+QUICK START (EAS BUILD - 15 MINUTES)
+════════════════════════════════════════════════════════════════════════════════
+
+Run these commands in order:
+
+# 1. Install EAS CLI
+npm install -g eas-cli
+
+# 2. Login to Expo (create account if needed)
+eas login
+
+# 3. Go to frontend directory
+cd frontend
+
+# 4. Update backend URL in src/api/config.ts
+# (Use your hosted backend URL or local IP)
+
+# 5. Build APK
+npm run build:android:preview
+
+# 6. Wait 10-15 minutes for build to complete
+
+# 7. Download APK from link shown in terminal
+
+# 8. Transfer to Android phone and install
+
+# ✅ Done!
+
+════════════════════════════════════════════════════════════════════════════════
+
+IMPORTANT NOTES
+════════════════════════════════════════════════════════════════════════════════
+
+Backend URL Configuration:
+  ⚠️  The APK will use URLs configured in src/api/config.ts
+  ⚠️  localhost/127.0.0.1 WILL NOT work on physical devices
+  ⚠️  Use either:
+      1. Your hosted backend URL (recommended)
+      2. Your computer's IP address (for testing)
+
+Finding Your Local IP:
+  Linux/Mac: ifconfig | grep "inet "
+  Windows: ipconfig
+  Look for: 192.168.x.x or 10.x.x.x
+
+Backend Must Be Accessible:
+  - If using local IP, backend must be running
+  - Phone and computer must be on same WiFi
+  - Firewall must allow connections on ports 3000, 8001
+
+APK Signing:
+  - Preview builds are signed automatically by Expo
+  - For Play Store, you'll need proper signing setup
+  - See: https://docs.expo.dev/app-signing/app-credentials/
+
+Build Troubleshooting:
+  - If build fails, check: eas build:list
+  - View logs: eas build:view <build-id>
+  - Common issues: missing permissions, invalid package name
+
+Free Builds:
+  - Expo provides limited free builds per month
+  - Check quota: eas build:list
+  - Need more? Upgrade to Expo paid plan
+
+════════════════════════════════════════════════════════════════════════════════
+
+TESTING YOUR APK
+════════════════════════════════════════════════════════════════════════════════
+
+Before Installing:
+  □ Backend is running and accessible
+  □ ML Service is running (if using features)
+  □ Backend URL configured correctly in app
+  □ PostgreSQL and Redis running (for backend)
+
+After Installing:
+  □ App opens without crashing
+  □ Login/Register works
+  □ Can view dashboard
+  □ API calls succeed (check with test account)
+  □ Location permissions work
+  □ Camera permissions work (for KYC)
+
+Common Issues:
+  ❌ "Cannot connect to server"
+     → Check backend URL in config.ts
+     → Ensure backend is accessible from phone
+  
+  ❌ "Permission denied"
+     → Enable permissions in phone settings
+     → Location, Camera, Storage
+  
+  ❌ App crashes on startup
+     → Check Expo Go logs or use adb logcat
+     → Often missing native dependencies
+
+════════════════════════════════════════════════════════════════════════════════
+
+NEXT STEPS AFTER APK BUILD
+════════════════════════════════════════════════════════════════════════════════
+
+1. Test thoroughly on multiple devices
+2. Fix any bugs or issues
+3. Deploy backend to production (Railway/Render)
+4. Update APK with production backend URL
+5. Build production APK: npm run build:android
+6. Distribute:
+   - Direct APK download from your website
+   - Publish to Google Play Store
+   - Use Firebase App Distribution
+   - Use Expo OTA updates
+
+Publishing to Play Store:
+  - Requires Google Play Developer account ($25 one-time fee)
+  - See: https://docs.expo.dev/submit/android/
+  - EAS Submit can automate this: eas submit -p android
+
+════════════════════════════════════════════════════════════════════════════════
+
+SUPPORT & RESOURCES
+════════════════════════════════════════════════════════════════════════════════
+
+Expo Documentation:
+  - EAS Build: https://docs.expo.dev/build/introduction/
+  - Android Builds: https://docs.expo.dev/build-reference/android-builds/
+  - Troubleshooting: https://docs.expo.dev/troubleshooting/build-errors/
+
+Community:
+  - Expo Discord: https://chat.expo.dev
+  - Expo Forums: https://forums.expo.dev
+  - Stack Overflow: [expo] tag
+
+Command Reference:
+  eas build --platform android              # Build APK/AAB
+  eas build:list                            # List all builds
+  eas build:view <build-id>                # View build details
+  eas build:cancel <build-id>              # Cancel running build
+  eas device:create                         # Register device for development
+  
+════════════════════════════════════════════════════════════════════════════════
+
+START BUILDING YOUR APK NOW!
+
+cd frontend
+npm install -g eas-cli
+eas login
+npm run build:android:preview
+
+════════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,432 @@
+API REFERENCE - MATCHING & IOT ENDPOINTS
+=========================================
+
+🔴 ML MATCHING SERVICE (Port 8002)
+===================================
+
+1. FIND BEST SELLERS FOR BUYER
+   Endpoint: POST /api/v1/match/find-sellers
+   
+   Request:
+   {
+     "latitude": 28.6139,
+     "longitude": 77.2090,
+     "required_kwh": 10,
+     "max_price": 10,
+     "preferences": {
+       "renewable": true,
+       "min_rating": 3.5
+     }
+   }
+   
+   Response:
+   {
+     "matches": [
+       {
+         "id": "match_001",
+         "seller_id": 5,
+         "seller_name": "Rooftop Solar Delhi",
+         "available_kwh": 12,
+         "price_per_kwh": 8.5,
+         "distance_km": 8.2,
+         "rating": 4.6,
+         "completed_transactions": 145,
+         "renewable_cert": true,
+         "match_score": 92,
+         "match_breakdown": {
+           "availability": 95,
+           "price": 87,
+           "reliability": 92,
+           "distance": 78,
+           "renewable": 100,
+           "timing": 88,
+           "distance_km": 8.2,
+           "price_per_kwh": 8.5
+         }
+       },
+       {
+         "id": "match_002",
+         "seller_id": 12,
+         ...similar structure...
+       }
+     ],
+     "total_matches": 24,
+     "average_match_score": 68.5
+   }
+
+2. FIND BEST BUYERS FOR SELLER
+   Endpoint: POST /api/v1/match/find-buyers
+   
+   Request:
+   {
+     "latitude": 28.6139,
+     "longitude": 77.2090,
+     "available_kwh": 15,
+     "price_per_kwh": 9
+   }
+   
+   Response: Same structure as find-sellers
+
+3. HEALTH CHECK
+   Endpoint: GET /api/v1/match/health
+   
+   Response:
+   {
+     "status": "healthy",
+     "timestamp": "2024-01-15T10:30:00Z",
+     "database": "connected",
+     "version": "1.0.0"
+   }
+
+🟢 BACKEND MATCHING API (Port 3000)
+===================================
+
+1. FIND SELLERS WITH CACHING
+   Endpoint: POST /api/v1/matching/find-sellers
+   Headers: Authorization: Bearer {JWT_TOKEN}
+   
+   Request:
+   {
+     "requiredKwh": 10,
+     "maxPrice": 10,
+     "preferences": {
+       "renewable": true,
+       "minRating": 3.5
+     }
+   }
+   
+   Response:
+   {
+     "success": true,
+     "data": {
+       "matches": [...24 matches as above...],
+       "buyer_requirements": {
+         "required_kwh": 10,
+         "max_price_per_kwh": 10,
+         "renewable_preference": true,
+         "min_rating": 3.5
+       },
+       "cached": false,
+       "cache_ttl": 300
+     }
+   }
+
+2. GET MATCH DETAILS WITH SCORE BREAKDOWN
+   Endpoint: GET /api/v1/matching/matches/{matchId}
+   Headers: Authorization: Bearer {JWT_TOKEN}
+   
+   Response:
+   {
+     "success": true,
+     "data": {
+       "match_id": "match_001",
+       "total_score": 92,
+       "score_breakdown": {
+         "availability": {
+           "score": 95,
+           "label": "Energy Availability",
+           "details": "10kWh allocated from 12kWh available",
+           "weight": 0.30
+         },
+         "price": {
+           "score": 87,
+           "label": "Price Competitiveness",
+           "details": "₹8.50/kWh",
+           "weight": 0.25
+         },
+         "reliability": {
+           "score": 92,
+           "label": "Seller Reliability",
+           "details": "4.6⭐ from 145 transactions",
+           "weight": 0.20
+         },
+         "distance": {
+           "score": 78,
+           "label": "Geographic Proximity",
+           "details": "8.2km away",
+           "weight": 0.15
+         },
+         "renewable": {
+           "score": 100,
+           "label": "Renewable Energy",
+           "details": "Certified renewable",
+           "weight": 0.05
+         },
+         "timing": {
+           "score": 88,
+           "label": "Timing Compatibility",
+           "details": "Available at requested time",
+           "weight": 0.05
+         }
+       },
+       "recommendation": "highly_recommended"
+     }
+   }
+
+3. CREATE SMART ALLOCATION
+   Endpoint: POST /api/v1/matching/allocate
+   Headers: Authorization: Bearer {JWT_TOKEN}
+   
+   Request:
+   {
+     "requiredKwh": 10,
+     "maxPrice": 10,
+     "preferences": {
+       "renewable": true
+     }
+   }
+   
+   Response:
+   {
+     "success": true,
+     "data": {
+       "total_allocations": 3,
+       "allocations": [
+         {
+           "allocation_id": "alloc_001",
+           "seller_id": 5,
+           "seller_name": "Rooftop Solar Delhi",
+           "allocated_kwh": 5,
+           "price_per_kwh": 8.5,
+           "match_score": 92,
+           "status": "active"
+         },
+         {
+           "allocation_id": "alloc_002",
+           "seller_id": 12,
+           "seller_name": "Industrial Solar Park",
+           "allocated_kwh": 3.5,
+           "price_per_kwh": 8.8,
+           "match_score": 85,
+           "status": "active"
+         },
+         {
+           "allocation_id": "alloc_003",
+           "seller_id": 18,
+           "seller_name": "Community Solar",
+           "allocated_kwh": 1.5,
+           "price_per_kwh": 9.0,
+           "match_score": 78,
+           "status": "active"
+         }
+       ],
+       "total_cost": 89.75,
+       "timestamp": "2024-01-15T10:30:00Z"
+     }
+   }
+
+4. GET ACTIVE ALLOCATIONS
+   Endpoint: GET /api/v1/matching/allocations/active
+   Headers: Authorization: Bearer {JWT_TOKEN}
+   
+   Response:
+   {
+     "success": true,
+     "data": {
+       "active_allocations": [
+         {
+           "id": "alloc_001",
+           "seller_id": 5,
+           "seller_name": "Rooftop Solar Delhi",
+           "allocated_kwh": 5,
+           "price_per_kwh": 8.5,
+           "match_score": 92,
+           "start_date": "2024-01-15T00:00:00Z",
+           "end_date": "2024-02-15T00:00:00Z",
+           "status": "active"
+         }
+       ],
+       "total_allocated_kwh": 10,
+       "estimated_monthly_cost": 2500
+     }
+   }
+
+5. CANCEL ALLOCATION
+   Endpoint: DELETE /api/v1/matching/allocations/{allocationId}
+   Headers: Authorization: Bearer {JWT_TOKEN}
+   
+   Response:
+   {
+     "success": true,
+     "message": "Allocation cancelled successfully",
+     "data": {
+       "allocation_id": "alloc_001",
+       "status": "cancelled"
+     }
+   }
+
+🔵 MQTT IOT ENDPOINTS (Port 1883)
+==================================
+
+1. DEVICE PUBLISHING SENSORS
+   Topic: /solar/{device_id}/{metric}
+   
+   Metrics published every 30 seconds:
+   
+   /solar/ESP32_SOL_001/voltage → "230.5" (float)
+   /solar/ESP32_SOL_001/current → "15.2" (float, mA)
+   /solar/ESP32_SOL_001/power → "3500" (float, W)
+   /solar/ESP32_SOL_001/temperature → "42.3" (float, °C)
+   /solar/ESP32_SOL_001/energy_today → "45.6" (float, kWh)
+   /solar/ESP32_SOL_001/status → "online" (string)
+   /solar/ESP32_SOL_001/health → {...JSON...}
+
+2. HEALTH CHECK JSON
+   Topic: /solar/{device_id}/health
+   
+   Payload:
+   {
+     "device_id": "ESP32_SOL_001",
+     "voltage": 230.5,
+     "current": 15.2,
+     "power": 3500,
+     "temperature": 42.3,
+     "humidity": 65.2,
+     "daily_energy": 45.6,
+     "max_temp": 52.1,
+     "min_temp": 18.5,
+     "uptime_seconds": 86400,
+     "signal_strength": -72
+   }
+
+3. DEVICE RECEIVING COMMANDS
+   Topic: /command/{device_id}/{command}
+   
+   Commands:
+   - /command/ESP32_SOL_001/shutdown → Device shuts down
+   - /command/ESP32_SOL_001/reset → Reset counters, restarts
+   - /command/ESP32_SOL_001/config → Configuration JSON update
+
+TESTING WITH CURL
+==================
+
+1. Test ML Service - Find Sellers
+   curl -X POST http://localhost:8002/api/v1/match/find-sellers \
+     -H "Content-Type: application/json" \
+     -d '{
+       "latitude": 28.6139,
+       "longitude": 77.2090,
+       "required_kwh": 10,
+       "max_price": 10
+     }'
+
+2. Test Backend - Find Sellers (with auth)
+   curl -X POST http://localhost:3000/api/v1/matching/find-sellers \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -d '{
+       "requiredKwh": 10,
+       "maxPrice": 10
+     }'
+
+3. Test Match Details
+   curl http://localhost:3000/api/v1/matching/matches/match_001 \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+4. Test MQTT - Subscribe
+   mosquitto_sub -h localhost -p 1883 -t "solar/#"
+
+5. Test MQTT - Publish
+   mosquitto_pub -h localhost -p 1883 \
+     -t "solar/ESP32_SOL_001/power" \
+     -m "3500"
+
+TESTING WITH POSTMAN
+====================
+
+1. Create environment variables:
+   - base_url: http://localhost:3000
+   - ml_url: http://localhost:8002
+   - jwt_token: <your_token>
+
+2. Find Sellers Request:
+   POST {{base_url}}/api/v1/matching/find-sellers
+   
+   Headers:
+   - Content-Type: application/json
+   - Authorization: Bearer {{jwt_token}}
+   
+   Body (raw JSON):
+   {
+     "requiredKwh": 10,
+     "maxPrice": 10,
+     "preferences": {
+       "renewable": true
+     }
+   }
+
+3. Expected Response:
+   Status: 200 OK
+   Body: Matches array with 6 score variables for each match
+
+ERROR RESPONSES
+===============
+
+1. Invalid Input:
+   Status: 400 Bad Request
+   {
+     "error": "ValidationError",
+     "message": "requiredKwh and maxPrice are required"
+   }
+
+2. No Matches Found:
+   Status: 404 Not Found
+   {
+     "error": "NoMatches",
+     "message": "No suitable sellers found for your requirements"
+   }
+
+3. Unauthorized:
+   Status: 401 Unauthorized
+   {
+     "error": "UnauthorizedError",
+     "message": "Invalid or missing JWT token"
+   }
+
+4. Database Error:
+   Status: 500 Internal Server Error
+   {
+     "error": "DatabaseError",
+     "message": "Failed to query database",
+     "requestId": "req_12345"
+   }
+
+RESPONSE CODES
+==============
+
+✅ 200 OK - Success
+✅ 201 Created - Resource created
+⚠️ 400 Bad Request - Invalid parameters
+⚠️ 401 Unauthorized - Missing/invalid auth
+⚠️ 404 Not Found - Resource not found
+❌ 500 Server Error - Internal error
+❌ 503 Service Unavailable - ML service down
+
+CACHING BEHAVIOR
+================
+
+Matching results cached for 5 minutes with keys:
+- match:buyer:{buyer_id}
+- match:seller:{seller_id}
+
+Cache cleared automatically when:
+- Smart allocation created
+- Device data updated
+- User preferences changed
+
+To manually clear cache:
+  docker-compose exec redis redis-cli FLUSHDB
+
+RATE LIMITING
+=============
+
+API Rate Limits (if enabled):
+- 100 requests/minute per IP
+- 1000 requests/day per user
+
+MQTT Connection Limits:
+- Max 5000 concurrent connections
+- Auto-reconnect after 30s disconnection
+- Message queue size: 1000 messages/device
+
+Use these endpoints to build and test your matching integration!

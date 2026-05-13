@@ -1,0 +1,198 @@
+================================================================================
+QUICK REFERENCE CARD - DBMS Lab Project
+================================================================================
+
+COMMAND REFERENCE:
+================================================================================
+
+Load Data:
+  python3 batch_loader.py all          # Load all samples
+  python3 batch_loader.py single       # Pick one dataset
+  python3 batch_loader.py list         # Show available files
+
+Generate Test Data:
+  python3 generate_test_schemas.py     # Generate test schemas
+  python3 generate_nested_data.py      # Generate nested data
+
+Validate Data:
+  python3 data_validator.py <data> <schema>
+
+View Help:
+  python3 QUICK_START_TOOLS.py         # View all tools
+  python3 populate_database.py         # Data loader help
+
+
+AVAILABLE DATASETS:
+================================================================================
+
+JSON Format (Nested):
+  • sample_ecommerce_orders.json (5 orders)
+  • sample_inventory_products.json (5 products)
+  • sample_real_estate_buildings.json (3 buildings)
+
+CSV Format (Tabular):
+  • sample_employees.csv (10 employees)
+  • sample_hospital_patients.csv (5 patients)
+
+NDJSON Format (Streaming):
+  • sample_iot_sensors.ndjson (5 sensors)
+
+
+DATA FEATURES DEMONSTRATED:
+================================================================================
+
+✓ Nested Objects          ✓ Arrays/Lists
+✓ Optional Fields         ✓ Type Variety
+✓ Hierarchical Data       ✓ Heterogeneous Records
+✓ Time-Series Data        ✓ Real-World Patterns
+
+
+API ENDPOINTS (Export):
+================================================================================
+
+GET /schemas/export/json             # All schemas (JSON)
+GET /schemas/export/sql              # All schemas (SQL)
+GET /schemas/{id}/export/json        # Single schema (JSON)
+GET /schemas/{id}/export/sql         # Single schema (SQL)
+GET /schemas/{id}/export/download/{fmt}  # Download file
+
+
+ROLES & PERMISSIONS:
+================================================================================
+
+Admin:
+  ✓ Create schemas
+  ✓ Delete any schema
+  ✓ Delete any records
+  ✓ Full system access
+
+Editor:
+  ✓ Create schemas
+  ✓ Delete own schemas
+  ✓ Manage own records
+  ✗ Delete others' schemas
+
+Viewer:
+  ✓ View schemas
+  ✓ View records
+  ✗ Create anything
+  ✗ Delete anything
+
+
+FIELD TYPES SUPPORTED:
+================================================================================
+
+Primitives:
+  integer, float, string, text, boolean
+
+Temporal:
+  date, datetime, timestamp
+
+Complex:
+  array, object, json
+
+
+TROUBLESHOOTING CHECKLIST:
+================================================================================
+
+□ Backend running on :5000?
+□ Frontend running on :3000?
+□ Database connection working?
+□ User authenticated?
+□ Data file exists?
+□ File format correct?
+□ Browser cache cleared?
+□ Console errors checked?
+
+
+FILES CREATED:
+================================================================================
+
+Python Tools:
+  ✓ populate_database.py
+  ✓ generate_test_schemas.py
+  ✓ generate_nested_data.py
+  ✓ data_validator.py
+  ✓ batch_loader.py
+
+Sample Data:
+  ✓ 6 diverse datasets
+
+Documentation:
+  ✓ FILES_AND_TOOLS_SUMMARY.txt
+  ✓ STATUS_REPORT.txt
+  ✓ QUICK_REFERENCE (this file)
+
+
+COMMON WORKFLOWS:
+================================================================================
+
+Workflow 1: Load & Explore
+  1. python3 batch_loader.py all
+  2. Visit http://localhost:3000
+  3. Login and view schemas
+
+Workflow 2: Export Schema
+  1. Load data via batch_loader
+  2. Click Download on schema
+  3. Select JSON or SQL
+  4. File downloads automatically
+
+Workflow 3: Generate Test Data
+  1. python3 generate_nested_data.py
+  2. Select data pattern
+  3. Output saved as JSON file
+  4. Use populate_database.py to load
+
+Workflow 4: Validate Quality
+  1. python3 data_validator.py <data> <schema>
+  2. Review validation report
+  3. Check field statistics
+  4. Fix any issues found
+
+
+SYSTEM REQUIREMENTS:
+================================================================================
+
+Backend:
+  • Python 3.7+
+  • Flask, SQLAlchemy
+  • PostgreSQL
+
+Frontend:
+  • Node.js 14+
+  • npm/yarn
+  • Modern browser
+
+Tools:
+  • Python 3.7+
+  • requests library
+
+
+PERFORMANCE NOTES:
+================================================================================
+
+Sample Data Size:
+  • Total: ~12 KB
+  • Records: ~35 total
+  • Load Time: 5-10 seconds
+
+Export Performance:
+  • Schema export: <1 sec
+  • Validation: <1 sec
+  • File download: Immediate
+
+
+FIXES APPLIED:
+================================================================================
+
+✅ Page rendering (CSS width fix)
+✅ Export endpoints (moved to correct file)
+✅ Permissions (creator-based delete)
+✅ Error messages (user-friendly)
+✅ Data edit (API endpoint fixed)
+
+
+NEXT: python3 batch_loader.py all
+
+================================================================================

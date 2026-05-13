@@ -1,0 +1,197 @@
+version: '3.8'
+
+services:
+  # ===== POSTGRESQL DATABASE =====
+  postgres:
+    image: postgres:15-alpine
+    container_name: solar-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: solar_sharing
+      POSTGRES_USER: solar_user
+      POSTGRES_PASSWORD: dev_password_123
+      TZ: UTC
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solar_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== REDIS CACHE =====
+  redis:
+    image: redis:7-alpine
+    container_name: solar-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass dev_redis_123 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data_dev:/data
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== MQTT BROKER (SEPARATE MICROSERVICE) =====
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.15
+    container_name: solar-mqtt-broker-dev
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/config/mosquitto.dev.conf:/mosquitto/config/mosquitto.conf
+      - ./mqtt/data:/mosquitto/data
+      - ./mqtt/log:/mosquitto/log
+    environment:
+      TZ: UTC
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # ===== ML MATCHING SERVICE (PYTHON) =====
+  ml-service:
+    build:
+      context: ./ml-services
+      dockerfile: Dockerfile
+    container_name: solar-ml-service-dev
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://solar_user:dev_password_123@postgres:5432/solar_sharing
+      LOG_LEVEL: debug
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./ml-services:/app
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+    command: ["uvicorn", "matching_service:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+
+  # ===== NODE.JS BACKEND =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: solar-backend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://solar_user:dev_password_123@postgres:5432/solar_sharing
+      REDIS_URL: redis://:dev_redis_123@redis:6379
+      MQTT_BROKER_URL: mqtt://mqtt-broker:1883
+      ML_MATCHING_URL: http://ml-service:8002
+      NODE_ENV: development
+      JWT_SECRET: dev_jwt_secret_change_in_production_12345
+      PORT: 3000
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_started
+      ml-service:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+    command: npm run dev
+
+  # ===== FRONTEND DEVELOPMENT SERVER =====
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: solar-frontend-dev
+    ports:
+      - "3001:3000"
+      - "19000:19000"
+    environment:
+      REACT_APP_API_URL: http://localhost:3000
+      REACT_APP_MQTT_URL: mqtt://localhost:1883
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+
+  # ===== ADMINER (DATABASE UI) =====
+  adminer:
+    image: adminer
+    container_name: solar-adminer-dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - solar-network-dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+
+networks:
+  solar-network-dev:
+    driver: bridge
+
+# ===== USEFUL COMMANDS =====
+#
+# Start all services:
+#   docker-compose up -d
+#
+# View logs:
+#   docker-compose logs -f backend
+#   docker-compose logs -f ml-service
+#   docker-compose logs -f mqtt-broker
+#
+# Stop all services:
+#   docker-compose down
+#
+# Remove all data (fresh start):
+#   docker-compose down -v
+#
+# Execute commands:
+#   docker-compose exec backend npm run migrate
+#   docker-compose exec postgres psql -U solar_user -d solar_sharing
+#
+# Test MQTT:
+#   docker-compose exec mqtt-broker mosquitto_pub -h localhost -t test/topic -m "test"
+#   docker-compose exec mqtt-broker mosquitto_sub -h localhost -t "test/#"
+#
+# View database:
+#   Open: http://localhost:8080
+#   System: PostgreSQL
+#   Server: postgres
+#   Username: solar_user
+#   Password: dev_password_123
+#   Database: solar_sharing
+#
+# Test API endpoints:
+#   curl http://localhost:3000/api/v1/health
+#   curl http://localhost:8002/api/v1/match/health
+#
+# Frontend access:
+#   http://localhost:3001
